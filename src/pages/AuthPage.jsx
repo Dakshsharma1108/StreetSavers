@@ -147,7 +147,13 @@ const AuthPage = () => {
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg mt-16">
         <h2 className="text-3xl font-bold text-center text-orange-600 mb-6">
           {isLogin ? 'Welcome Back' : 'Create an Account'}
-        </h2>
+        </h2
+          
+        {isLogin && (
+          <div className="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-3 rounded mb-4">
+            <strong>Note:</strong> Please enable site and device location
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -193,12 +199,15 @@ const AuthPage = () => {
               </div>
 
               <div className="flex items-center border rounded px-3 py-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
-                  className="w-full text-sm text-gray-600"
-                />
+                <label className="w-full text-sm text-gray-600">
+                  Upload Profile Picture:
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setFormData({ ...formData, image: e.target.files[0] })}
+                    className="w-full mt-1 text-sm text-gray-600"
+                  />
+                </label>
               </div>
 
               {formData.image && (
