@@ -147,7 +147,7 @@ const AuthPage = () => {
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg mt-16">
         <h2 className="text-3xl font-bold text-center text-orange-600 mb-6">
           {isLogin ? 'Welcome Back' : 'Create an Account'}
-        </h2
+        </h2>
           
         {isLogin && (
           <div className="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-3 rounded mb-4">
