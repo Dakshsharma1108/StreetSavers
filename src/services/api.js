@@ -29,6 +29,15 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    console.error('API Error Details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method
+    });
+    
     if (error.message === 'Network Error') {
       console.error('Network Error: Cannot connect to the backend server. Please make sure the server is running.');
     } else {
@@ -38,6 +47,7 @@ api.interceptors.response.use(
     // Handle different error status codes
     if (error.response?.status === 401) {
       // Handle unauthorized access (not logged in)
+      console.warn('Unauthorized access - redirecting to login');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/auth';
