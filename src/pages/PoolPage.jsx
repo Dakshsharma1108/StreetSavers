@@ -137,6 +137,9 @@ const PoolPage = () => {
   const currentQuantity = poolData?.joinedVendors?.reduce((sum, vendor) => sum + vendor.quantity, 0) || poolData?.currentQuantity || 0;
   const targetQuantity = poolData?.totalRequiredQuantity || poolData?.targetQuantity || 500;
   const progressPercentage = Math.min((currentQuantity / targetQuantity) * 100, 100);
+  
+  // Determine if pool has ended
+  const isPoolEnded = poolData?.isClosed || poolData?.isExpired || progressPercentage >= 100;
 
   const mockPoolData = {
     title: 'Fresh Vegetables Bulk Order',
@@ -190,8 +193,11 @@ const PoolPage = () => {
     }
   ];
 
-  // Countdown timer effect
+  // Countdown timer effect - only run for active pools
   useEffect(() => {
+    // Don't start timer if pool has ended
+    if (isPoolEnded) return;
+    
     const timer = setInterval(() => {
       setTimeLeft(prevTime => {
         let { hours, minutes, seconds } = prevTime;
@@ -212,7 +218,7 @@ const PoolPage = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isPoolEnded]);
 
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -437,39 +443,68 @@ const PoolPage = () => {
               </div>
             </div>
 
-            {/* Countdown Timer */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Time Remaining</h3>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="bg-orange-100 rounded-lg p-3 mb-2">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {String(timeLeft.hours).padStart(2, '0')}
+            {/* Countdown Timer - Only show for active pools */}
+            {!isPoolEnded && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Time Remaining</h3>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="bg-orange-100 rounded-lg p-3 mb-2">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {String(timeLeft.hours).padStart(2, '0')}
+                      </div>
                     </div>
+                    <div className="text-sm text-gray-600">Hours</div>
                   </div>
-                  <div className="text-sm text-gray-600">Hours</div>
-                </div>
-                <div>
-                  <div className="bg-orange-100 rounded-lg p-3 mb-2">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {String(timeLeft.minutes).padStart(2, '0')}
+                  <div>
+                    <div className="bg-orange-100 rounded-lg p-3 mb-2">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {String(timeLeft.minutes).padStart(2, '0')}
+                      </div>
                     </div>
+                    <div className="text-sm text-gray-600">Minutes</div>
                   </div>
-                  <div className="text-sm text-gray-600">Minutes</div>
-                </div>
-                <div>
-                  <div className="bg-orange-100 rounded-lg p-3 mb-2">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {String(timeLeft.seconds).padStart(2, '0')}
+                  <div>
+                    <div className="bg-orange-100 rounded-lg p-3 mb-2">
+                      <div className="text-2xl font-bold text-orange-600">
+                        {String(timeLeft.seconds).padStart(2, '0')}
+                      </div>
                     </div>
+                    <div className="text-sm text-gray-600">Seconds</div>
                   </div>
-                  <div className="text-sm text-gray-600">Seconds</div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Join Pool */}
-            {!isJoined && !poolData.isClosed && !isCreator && (
+            {/* Pool Status - Show for ended pools */}
+            {isPoolEnded && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Pool Status</h3>
+                <div className="text-center py-4">
+                  {poolData?.isClosed && (
+                    <div className="flex items-center justify-center text-red-600 bg-red-50 px-4 py-3 rounded-lg">
+                      <Clock className="h-5 w-5 mr-2" />
+                      <span className="font-medium">Pool Closed</span>
+                    </div>
+                  )}
+                  {poolData?.isExpired && !poolData?.isClosed && (
+                    <div className="flex items-center justify-center text-gray-600 bg-gray-50 px-4 py-3 rounded-lg">
+                      <Clock className="h-5 w-5 mr-2" />
+                      <span className="font-medium">Pool Expired</span>
+                    </div>
+                  )}
+                  {progressPercentage >= 100 && !poolData?.isClosed && !poolData?.isExpired && (
+                    <div className="flex items-center justify-center text-blue-600 bg-blue-50 px-4 py-3 rounded-lg">
+                      <CheckCircle className="h-5 w-5 mr-2" />
+                      <span className="font-medium">Pool Completed</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Join Pool - Only show for active pools where user hasn't joined and isn't creator */}
+            {!isJoined && !isPoolEnded && !isCreator && (
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Join This Pool</h3>
                 <div className="space-y-4">
@@ -517,8 +552,8 @@ const PoolPage = () => {
               </div>
             )}
 
-            {/* End Pool - Only for creators */}
-            {isCreator && !poolData.isClosed && (
+            {/* End Pool - Only for creators of active pools */}
+            {isCreator && !isPoolEnded && (
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Pool Management</h3>
                 <div className="space-y-4">
@@ -535,25 +570,6 @@ const PoolPage = () => {
                   >
                     {endingPool ? 'Ending Pool...' : 'End Pool'}
                   </button>
-                </div>
-              </div>
-            )}
-
-            {/* Pool Closed Message */}
-            {poolData.isClosed && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Pool Status</h3>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                  <Clock className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                  <h4 className="font-semibold text-red-800 mb-1">Pool Closed</h4>
-                  <p className="text-sm text-red-600">
-                    This pool is no longer accepting new members.
-                  </p>
-                  {poolData.closedAt && (
-                    <p className="text-xs text-red-500 mt-2">
-                      Closed on {new Date(poolData.closedAt).toLocaleDateString()}
-                    </p>
-                  )}
                 </div>
               </div>
             )}
