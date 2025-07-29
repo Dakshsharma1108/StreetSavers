@@ -65,16 +65,18 @@ const Dashboard = () => {
         });
         
         // Transform product data for display
-        const transformedProducts = supplierProducts.map(product => ({
+       const transformedProducts = supplierProducts.map(product => ({
           _id: product._id,
           id: product._id,
           name: product.name || 'Product',
           price: product.pricePerKg || 0,
           minOrderQuantity: product.minOrderQuantity || 1,
-          description: `Min order: ${product.minOrderQuantity}kg • ₹${product.pricePerKg}/kg`,
+          description: `Min order: ${product.minOrderQuantity || 1}kg • ₹${product.pricePerKg || 0}/kg`,
           totalSold: product.totalSold || 0,
           category: product.category || 'Other',
-          createdAt: product.createdAt || new Date()
+          createdAt: product.createdAt ? new Date(product.createdAt) : new Date(),
+          supplierName: product.supplier?.name || 'Unknown',
+          supplierLocation: product.supplier?.location || []
         }));
         
         // Set products with no mock data
